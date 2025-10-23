@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <div class="mb-3">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Shares</th>
+                    <th>Price</th>
+                    <th>TOTAL</th>
+                </tr>
+            </thead>
+            <!--Keep track of the total value of shares-->
+            {% set ns = namespace(total_shares=0) %}
+            <tbody>
+                {% for own in owned %}
+                <tr>
+                    <td>{{ own.symbol }}</td>
+                    <td>{{ own.total }}</td>
+                    <td>{{ own.price | usd }}</td>
+                    <td>{{ (own.total * own.price) | usd }}</td>
+                </tr>
+                {% set ns.total_shares = ns.total_shares + (own.total * own.price) %}
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Cash</strong></td>
+                    <td><strong>{{ cash | usd }}</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="3"><strong>TOTAL</strong></td>
+                    <td><strong>{{ (cash + ns.total_shares) | usd }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+{% endblock %}
