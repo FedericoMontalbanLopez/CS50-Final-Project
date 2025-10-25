@@ -4,7 +4,9 @@
 
     <head>
 
+        <!-- Specifies the character set for the document is UTF-8, which supports almost all characters and symbols in the world -->
         <meta charset="utf-8">
+        <!-- Ensures proper rendering and touch zooming on mobile devices -->  
         <meta name="viewport" content="initial-scale=1, width=device-width">
 
         <!-- http://getbootstrap.com/docs/5.3/ -->
@@ -16,15 +18,16 @@
 
         <link href="/static/styles.css" rel="stylesheet">
 
-        <title>C$50 Finance: {% block title %}{% endblock %}</title>
+        <title>Final project: {% block title %}{% endblock %}</title>
 
     </head>
 
     <body>
 
+        <!--navbar from Bootstrap -->
         <nav class="bg-light border navbar navbar-expand-md navbar-light">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/"><span class="blue">C</span><span class="red">$</span><span class="yellow">5</span><span class="green">0</span> <span class="red">Finance</span></a>
+                <a class="navbar-brand" href="/"><span class="blue">v</span><span class="red">ir</span><span class="yellow">tu</span><span class="green">al</span> <span class="red">Passport</span></a>
                 <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -63,23 +66,10 @@
         </main>
 
         <footer class="mb-5">
-            <form action="https://validator.w3.org/check" class="text-center" enctype="multipart/form-data" method="post" target="_blank">
-                <input name="doctype" type="hidden" value="HTML5">
-                <input name="fragment" type="hidden">
-                <input alt="Validate" src="/static/I_heart_validator.png" type="image"> <!-- https://validator.w3.org/ -->
-            </form>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Adapted from https://stackoverflow.com/a/10162353
-                    const html = '<!DOCTYPE ' +
-                    document.doctype.name +
-                    (document.doctype.publicId ? ' PUBLIC "' + document.doctype.publicId + '"' : '') +
-                    (!document.doctype.publicId && document.doctype.systemId ? ' SYSTEM' : '') +
-                    (document.doctype.systemId ? ' "' + document.doctype.systemId + '"' : '') +
-                    '>\n' + document.documentElement.outerHTML;
-                    document.querySelector('form[action="https://validator.w3.org/check"] > input[name="fragment"]').value = html;
-                });
-            </script>
+            <hr>
+            <div class="text-center text-muted">
+                &copy; 2024 Federico Montalbán
+            </div>
         </footer>
 
     </body>
