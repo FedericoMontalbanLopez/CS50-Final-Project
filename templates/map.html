@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Virtual Passport Map
+{% endblock %}
+
+{% block main %}
+
+    <!-- Leaflet CSS for map styling -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <!-- Load Tailwind for basic aesthetics. You can replace this with your existing CSS/Bootstrap -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        <h1 class="text-3xl font-bold mb-4 text-center">Your Virtual Passport: Pin a New Location</h1>
+
+        <!-- Map Container: MUST have a defined height -->
+        <div id="map" class="w-full shadow-lg rounded-xl mb-6 border-4 border-gray-200" style="height: 60vh;"></div>
+        
+        <!-- Form to submit the new Stamp data -->
+        <form id="stamp-form" action="/pin" method="post" class="bg-white p-6 rounded-xl shadow-lg border">
+            <h2 class="text-2xl font-semibold mb-4 text-center">New Stamp Details</h2>
+
+            <!-- Hidden fields to store coordinates -->
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
+            <div class="mb-4">
+                <label for="location_name" class="block text-sm font-medium text-gray-700">Fictional Location Name (e.g., Albuquerque, Hogwarts):</label>
+                <input type="text" id="location_name" name="location_name" required 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+            </div>
+
+            <div class="mb-4">
+                <label for="source" class="block text-sm font-medium text-gray-700">Fiction Source (Movie, Book, Series Name):</label>
+                <input type="text" id="source" name="source" required 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+            </div>
+
+            <div class="text-center">
+                <button type="submit" id="submit-button" disabled 
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-150 opacity-50 cursor-not-allowed">
+                    Stamp Your Passport
+                </button>
+                <p id="instruction-message" class="mt-2 text-sm text-red-500 font-medium">Click on the map to select a location first.</p>
+            </div>
+        </form>
+    </div>
+
+    <!-- Leaflet JS for map functionality -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // WRAPPER FIX: Wait for the entire DOM structure to be loaded before running map initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. DATA TRANSFER: Safely get the existing stamps data passed from the Flask route.
+            const existingStamps = JSON.parse('{{ (stamps or []) | tojson }}');
+
+            // Initialize the map inside a try/catch block to detect basic failure
+            try {
+                // Check if the map div exists before initializing
+                if (!document.getElementById('map')) {
+                    throw new Error("Map container element '#map' not found.");
+                }
+
+                const map = L.map('map').setView([40, -98], 3); // Centered US, Zoom Level 3
+                let currentMarker = null; // Variable to hold the marker the user places
+
+                // *****************************************************************
+                // FIX: SWITCHED TO CARTO POSITRON TILES as a reliable alternative
+                // *****************************************************************
+                L.tileLayer('//{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    maxZoom: 19,
+                }).addTo(map);
+                
+                // FIX: Force Leaflet to redraw itself after the page is fully structured
+                // The DOMContentLoaded listener helps here, but the timeout is still reliable.
+                setTimeout(function () {
+                    map.invalidateSize();
+                }, 100);
+
+                const latInput = document.getElementById('latitude');
+                const lonInput = document.getElementById('longitude');
+                const submitButton = document.getElementById('submit-button');
+                const instructionMessage = document.getElementById('instruction-message');
+                
+                // Function to plot saved stamps on the map
+                function plotExistingStamps(stampsArray) {
+                    if (stampsArray && stampsArray.length > 0) {
+                        stampsArray.forEach(stamp => {
+                            L.marker([stamp.latitude, stamp.longitude])
+                                .addTo(map)
+                                .bindPopup(`
+                                    <strong>${stamp.location_name}</strong><br>
+                                    <em>Source: ${stamp.source}</em>
+                                `)
+                                .openPopup();
+                        });
+                    }
+                }
+                
+                // PLOT SAVED STAMPS when the map loads
+                plotExistingStamps(existingStamps);
+
+
+                // Event listener for map clicks (for placing a new pin)
+                map.on('click', function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+
+                    // 1. Remove any existing new marker
+                    if (currentMarker) {
+                        map.removeLayer(currentMarker);
+                    }
+
+                    // 2. Add a new marker at the clicked location
+                    currentMarker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup(`Pin at: ${lat.toFixed(4)}, ${lng.toFixed(4)}`).openPopup();
+
+                    // 3. Update the hidden form fields with the coordinates
+                    latInput.value = lat;
+                    lonInput.value = lng;
+                    
+                    // 4. Enable the submit button and update instructions
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    instructionMessage.textContent = 'Location selected. Fill in details and click "Stamp Your Passport"!';
+                    instructionMessage.classList.remove('text-red-500');
+                    instructionMessage.classList.add('text-green-600');
+                });
+                
+            } catch (error) {
+                // Log any failure in map initialization to the user and console
+                const mapDiv = document.getElementById('map');
+                if (mapDiv) {
+                    mapDiv.innerHTML = '<div class="flex items-center justify-center h-full text-lg text-red-600">Map failed to load. Check console for Leaflet errors or network issues.</div>';
+                }
+                console.error("Map Initialization Error:", error);
+            }
+        });
+    </script>
